@@ -19,4 +19,13 @@ public class AIConfig {
                         new SimpleLoggerAdvisor())
                 .build();
     }
+
+    @Bean
+    public ChatClient dailyReportChatClient(OpenAiChatModel model) {
+        return ChatClient.builder(model)
+                .defaultSystem(AIConstant.DAILY_REPORT+" /no-think ")
+                .defaultAdvisors(
+                        new SimpleLoggerAdvisor())
+                .build();
+    }
 }

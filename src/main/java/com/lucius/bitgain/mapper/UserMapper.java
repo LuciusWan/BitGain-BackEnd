@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+import java.util.List;
+
 @Mapper
 public interface UserMapper {
     @Select("select * from user where id = #{id}")
@@ -37,4 +39,10 @@ public interface UserMapper {
      */
     @Update("update user set username = #{username}, phone = #{phone}, email = #{email}, profession = #{profession}, skills = #{skills}, goals = #{goals}, email_subscribe = #{emailSubscribe}, update_time = #{updateTime} where id = #{id}")
     int updateUser(User user);
+
+    /**
+     * 查询所有开启邮件订阅的用户
+     */
+    @Select("select * from user where email_subscribe = 1 and deleted = 0 and email is not null")
+    List<User> getSubscribedUsers();
 }
