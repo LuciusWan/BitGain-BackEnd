@@ -3,6 +3,7 @@ package com.lucius.bitgain.mapper;
 import com.lucius.bitgain.entity.TodayGoal;
 import org.apache.ibatis.annotations.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -77,4 +78,6 @@ public interface TodayGoalMapper {
      */
     @Delete("DELETE FROM today_goal WHERE user_id = #{userId}")
     int deleteByUserId(Long userId);
+    @Select("SELECT * FROM today_goal WHERE user_id = #{userId} AND create_time >= #{startOfDay} AND create_time < #{endOfDay}")
+    List<TodayGoal> selectByUserIdAndTime(Long userId, LocalDateTime startOfDay, LocalDateTime endOfDay);
 }

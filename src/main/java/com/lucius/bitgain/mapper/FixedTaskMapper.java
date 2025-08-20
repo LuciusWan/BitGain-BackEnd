@@ -114,7 +114,7 @@ public interface FixedTaskMapper {
      * 更新任务的删除状态
      * @param fixedTask 固定任务信息
      */
-    @Update("UPDATE fixed_task SET deleted = #{deleted}, update_time = #{updateTime} " +
+    @Update("UPDATE fixed_task SET deleted = #{deleted}, update_time = #{updateTime} ,status=#{status} " +
             "WHERE id = #{id} AND user_id = #{userId}")
     void updateDeleted(FixedTask fixedTask);
 }

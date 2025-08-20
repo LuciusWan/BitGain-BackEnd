@@ -9,8 +9,10 @@ import com.lucius.bitgain.constant.AIConstant;
 import com.lucius.bitgain.context.BaseContext;
 import com.lucius.bitgain.dto.TaskActionDTO;
 import com.lucius.bitgain.entity.FixedTask;
+import com.lucius.bitgain.entity.TodayGoal;
 import com.lucius.bitgain.entity.User;
 import com.lucius.bitgain.mapper.FixedTaskMapper;
+import com.lucius.bitgain.mapper.TodayGoalMapper;
 import com.lucius.bitgain.mapper.UserMapper;
 import com.lucius.bitgain.service.BitGainDesignService;
 import com.lucius.bitgain.utils.Result;
@@ -43,6 +45,8 @@ public class BitGainDesignServiceImpl implements BitGainDesignService {
     
     @Autowired
     private FixedTaskMapper fixedTaskMapper;
+    @Autowired
+    private TodayGoalMapper todayGoalMapper;
     @Override
     public void bitGainDesign(SseEmitter emitter, Long userId) {
         executorService.submit(() -> {
@@ -66,9 +70,9 @@ public class BitGainDesignServiceImpl implements BitGainDesignService {
                 LocalDateTime startOfDay = today.atStartOfDay();
                 LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
                 List<FixedTask> todayTasks = fixedTaskMapper.selectByUserIdAndTimeRange(userId, startOfDay, endOfDay);
-                
+                List<TodayGoal> todayGoals = todayGoalMapper.selectByUserIdAndTime(userId,startOfDay, endOfDay);
                 // 构建AI提示内容
-                String userPrompt = buildUserPrompt(user, todayTasks);
+                String userPrompt = buildUserPrompt(user, todayTasks, todayGoals);
                 
                 // 调用AI接口生成推荐
                 StringBuilder aiResponse = new StringBuilder();
@@ -150,8 +154,11 @@ public class BitGainDesignServiceImpl implements BitGainDesignService {
             LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
             List<FixedTask> todayTasks = fixedTaskMapper.selectByUserIdAndTimeRange(userId, startOfDay, endOfDay);
             
+            // 查询用户今日目标
+            List<TodayGoal> todayGoals = todayGoalMapper.selectByUserIdAndTime(userId, startOfDay, endOfDay);
+            
             // 3. 构建AI提示内容
-            String userPrompt = buildUserPrompt(user, todayTasks);
+            String userPrompt = buildUserPrompt(user, todayTasks, todayGoals);
             log.info("构建的用户提示内容: {}", userPrompt);
             
             // 4. 调用AI接口
@@ -178,14 +185,23 @@ public class BitGainDesignServiceImpl implements BitGainDesignService {
     /**
      * 构建发送给AI的用户提示内容
      */
-    private String buildUserPrompt(User user, List<FixedTask> todayTasks) {
+    private String buildUserPrompt(User user, List<FixedTask> todayTasks, List<TodayGoal> todayGoals) {
         StringBuilder prompt = new StringBuilder();
         
         // 用户基本信息
         prompt.append("用户信息:\n");
         prompt.append("职业: ").append(user.getProfession() != null ? user.getProfession() : "未设置").append("\n");
         prompt.append("技能: ").append(user.getSkills() != null ? user.getSkills() : "未设置").append("\n");
-        prompt.append("目标: ").append(user.getGoals() != null ? user.getGoals() : "未设置").append("\n\n");
+        prompt.append("目标: ").append(user.getGoals() != null ? user.getGoals() : "未设置").append("\n");
+        
+        // 今日目标
+        if (todayGoals != null && !todayGoals.isEmpty()) {
+            prompt.append("今日目标:\n");
+            for (TodayGoal goal : todayGoals) {
+                 prompt.append("- ").append(goal.getGoal()).append("\n");
+             }
+        }
+        prompt.append("\n");
         
         // 今日日程
         prompt.append("今日已安排的固定任务:\n");
@@ -201,7 +217,7 @@ public class BitGainDesignServiceImpl implements BitGainDesignService {
             }
         }
         
-        prompt.append("\n请根据用户的职业、技能、目标和今日日程，推荐3-5个适合的碎片时间提升任务。");
+        prompt.append("\n请根据用户的职业、技能、目标、今日目标和今日日程，推荐3-5个适合的碎片时间提升任务。");
         
         return prompt.toString();
     }
@@ -283,7 +299,7 @@ public class BitGainDesignServiceImpl implements BitGainDesignService {
              
              int commitCount = 0;
              int rejectCount = 0;
-             
+             System.out.println("taskActions:"+taskActions);
              for (TaskActionDTO taskAction : taskActions) {
                  Long taskId = taskAction.getTaskId();
                  String action = taskAction.getAction();
@@ -318,7 +334,7 @@ public class BitGainDesignServiceImpl implements BitGainDesignService {
                  resultMsg.append("成功启用").append(commitCount).append("个任务");
              }
              if (rejectCount > 0) {
-                 if (resultMsg.length() > 0) {
+                 if (!resultMsg.isEmpty()) {
                      resultMsg.append("，");
                  }
                  resultMsg.append("成功删除").append(rejectCount).append("个任务");

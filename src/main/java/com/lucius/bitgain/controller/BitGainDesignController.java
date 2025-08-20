@@ -2,6 +2,7 @@ package com.lucius.bitgain.controller;
 
 import com.lucius.bitgain.context.BaseContext;
 import com.lucius.bitgain.dto.TaskActionDTO;
+import com.lucius.bitgain.dto.TaskActionsRequestDTO;
 import com.lucius.bitgain.service.BitGainDesignService;
 import com.lucius.bitgain.utils.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +24,7 @@ public class BitGainDesignController {
     @Autowired
     private BitGainDesignService bitGainDesignService;
     
-    @RequestMapping(value = "/design", produces = "text/event-stream")
+    @RequestMapping(value = "/recommend-tasks", produces = "text/event-stream")
     @Operation(summary = "AI智能设计", description = "基于SSE的AI智能设计功能")
     public SseEmitter bitGainDesign() {
         SseEmitter emitter = new SseEmitter(60000000L);
@@ -35,7 +36,7 @@ public class BitGainDesignController {
      * AI任务推荐
      * @return 推荐任务详情列表
      */
-    @PostMapping("/recommend-tasks")
+    @PostMapping
     @Operation(summary = "AI任务推荐", description = "根据用户职业、技能、目标和今日日程，推荐适合的碎片时间提升任务")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "推荐成功"),
@@ -48,7 +49,6 @@ public class BitGainDesignController {
     
     /**
      * 确认推荐任务
-     * @param taskActions 用户对推荐任务的操作列表
      * @return 确认结果
      */
     @PostMapping("/confirm-tasks")
@@ -59,7 +59,8 @@ public class BitGainDesignController {
             @ApiResponse(responseCode = "401", description = "用户未登录"),
             @ApiResponse(responseCode = "500", description = "确认失败")
     })
-    public Result<String> confirmRecommendedTasks(@RequestBody List<TaskActionDTO> taskActions) {
-        return bitGainDesignService.confirmRecommendedTasks(taskActions);
+    public Result<String> confirmRecommendedTasks(@RequestBody TaskActionsRequestDTO request) {
+        Long userId = BaseContext.getCurrentId();
+        return bitGainDesignService.confirmRecommendedTasks(request.getTaskActions());
     }
 }

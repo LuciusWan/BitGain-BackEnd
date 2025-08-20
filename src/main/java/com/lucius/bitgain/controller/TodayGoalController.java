@@ -124,7 +124,7 @@ public class TodayGoalController {
      *
      * @return 目标列表
      */
-    @GetMapping
+    @GetMapping("/my/all")
     @Operation(summary = "查询我的今日目标列表", description = "查询当前用户的所有今日目标")
     public Result<List<TodayGoalVO>> getMyTodayGoals() {
         
