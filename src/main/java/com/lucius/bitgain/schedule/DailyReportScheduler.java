@@ -21,7 +21,7 @@ public class DailyReportScheduler {
      * cron表达式: 秒 分 时 日 月 周
      * 0 0 20 * * ? 表示每天20:00:00执行
      */
-    @Scheduled(cron = "0 33 20 * * ?")
+    @Scheduled(cron = "0 43 20 * * ?")
     public void sendDailyReports() {
         log.info("开始执行日报发送定时任务");
         try {
