@@ -1,0 +1,25 @@
+spring:
+  ai:
+    openai:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      api-key: sk-f05ef9cd88fd436ea4be2b2e3edae7f4
+      chat:
+        options:
+          model: qwen3-235b-a22b
+  application:
+   name: BitGain
+  datasource:
+    url: jdbc:mysql://localhost:3306/bitgain?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.Lucius.entity
+  configuration:
+    map-underscore-to-camel-case: true
+# JWT
+psy:
+  jwt:
+    user-secret-key: ABELBeJAxH5EAzCdEZk3mLQKu8U0qsuE5WQ4CKc7dehesgsdgdsfrgresdgggggredfbgderghedrhbedEs=
+    user-token-name: Authorization
+    user-ttl: 7200000
